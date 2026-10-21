@@ -1,0 +1,14 @@
+{
+  "name": "world-signal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --use-env-proxy server.js",
+    "dev": "node --use-env-proxy --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
