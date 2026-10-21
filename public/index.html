@@ -1,121 +1,32 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101b29">
-  <meta name="description" content="World Signal 聚焦人工智能、科技、金融與社會動盪，從全球新聞中尋找值得留意的變化。">
-  <title>World Signal — 看見變局，讀懂世界</title>
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <link rel="stylesheet" href="./styles.css">
-  <script type="module" src="./app.js"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0b1017">
+<meta name="description" content="全球新聞終端：人工智能、科技、金融與社會動盪，一頁掌握四大新聞板塊。">
+<title>World Signal — 全球新聞終端</title>
+<link rel="icon" href="./favicon.svg"><link rel="stylesheet" href="./styles.css"><script type="module" src="./app.js"></script>
 </head>
 <body>
-  <div class="topline" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-  <header class="site-header shell">
-    <a class="brand" href="#top" aria-label="World Signal 首頁">
-      <span class="brand-mark"><span></span><span></span><span></span></span>
-      <span class="brand-name">WORLD<span>SIGNAL</span><small>全球新聞觀察</small></span>
-    </a>
-    <nav class="main-nav" aria-label="主要導覽">
-      <a href="#coverage">觀察領域</a>
-      <a href="#latest">最新報導</a>
-      <a href="#method">資料說明</a>
-    </nav>
-    <a class="header-link" href="#latest">開始探索 <span aria-hidden="true">↗</span></a>
-  </header>
-
-  <main id="top">
-    <section class="hero shell" aria-labelledby="hero-title">
-      <div class="hero-content">
-        <div class="eyebrow"><span class="eyebrow-line"></span> THE GLOBAL EDITION <span class="eyebrow-index">/ 001</span></div>
-        <h1 id="hero-title">看見變局，<br><em>讀懂世界。</em></h1>
-        <p class="hero-description">從人工智能到社會變遷，追蹤塑造世界的四股力量。把分散各地的報導，整理成更清晰的觀察入口。</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#latest">探索最新新聞 <span aria-hidden="true">↗</span></a>
-          <a class="text-link" href="#coverage">了解觀察領域 <span aria-hidden="true">↓</span></a>
-        </div>
-        <div class="hero-meta"><span class="pulse-dot"></span><span>跨國視角 · 原文報導 · 持續更新</span></div>
-      </div>
-      <div class="hero-visual" aria-label="四個領域的全球訊號圖示" role="img">
-        <div class="visual-grid"></div>
-        <div class="orbit orbit-one"></div>
-        <div class="orbit orbit-two"></div>
-        <div class="orbit orbit-three"></div>
-        <div class="orbital-point point-one"></div>
-        <div class="orbital-point point-two"></div>
-        <div class="orbital-point point-three"></div>
-        <div class="globe-core"><span class="core-cross">+</span><span>WORLD<br>SIGNAL</span></div>
-        <span class="visual-label label-top">01 / ARTIFICIAL INTELLIGENCE</span>
-        <span class="visual-label label-right">02 / TECHNOLOGY</span>
-        <span class="visual-label label-bottom">03 / FINANCE</span>
-        <span class="visual-label label-left">04 / SOCIAL CHANGE</span>
-        <span class="visual-corner top-left">+ 22° 18′</span>
-        <span class="visual-corner bottom-right">SIGNAL / ACTIVE</span>
-      </div>
-    </section>
-
-    <section class="ticker-wrap" aria-label="觀察主題">
-      <div class="ticker shell">
-        <span class="ticker-heading">正在觀察 <span class="pulse-dot"></span></span>
-        <div class="ticker-items"><span>人工智能 <b>01</b></span><span>科技前沿 <b>02</b></span><span>全球金融 <b>03</b></span><span>社會動盪 <b>04</b></span></div>
-        <span class="ticker-date" id="today-date"></span>
-      </div>
-    </section>
-
-    <section class="coverage shell section" id="coverage" aria-labelledby="coverage-title">
-      <div class="section-header">
-        <div><p class="section-kicker">01 / OUR LENSES</p><h2 id="coverage-title">四條觀察線<span class="accent">.</span></h2></div>
-        <p>從技術突破到社會反應，<br>沿著重要議題理解世界如何改變。</p>
-      </div>
-      <div class="coverage-grid">
-        <button class="coverage-card" type="button" data-topic="ai"><span class="card-number">01 / 04</span><span class="coverage-icon icon-ai" aria-hidden="true">✳</span><span class="coverage-title">人工智能</span><span class="coverage-description">模型、產業應用與治理政策</span><span class="coverage-bottom"><span>AI &amp; FUTURE</span><b aria-hidden="true">↗</b></span></button>
-        <button class="coverage-card" type="button" data-topic="tech"><span class="card-number">02 / 04</span><span class="coverage-icon icon-tech" aria-hidden="true">⌘</span><span class="coverage-title">科技前沿</span><span class="coverage-description">晶片、網絡安全與新興技術</span><span class="coverage-bottom"><span>TECHNOLOGY</span><b aria-hidden="true">↗</b></span></button>
-        <button class="coverage-card" type="button" data-topic="finance"><span class="card-number">03 / 04</span><span class="coverage-icon icon-finance" aria-hidden="true">↗</span><span class="coverage-title">全球金融</span><span class="coverage-description">市場、央行與經濟政策</span><span class="coverage-bottom"><span>FINANCE</span><b aria-hidden="true">↗</b></span></button>
-        <button class="coverage-card" type="button" data-topic="unrest"><span class="card-number">04 / 04</span><span class="coverage-icon icon-unrest" aria-hidden="true">◉</span><span class="coverage-title">社會動盪</span><span class="coverage-description">抗議、衝突與社會變化</span><span class="coverage-bottom"><span>SOCIETY</span><b aria-hidden="true">↗</b></span></button>
-      </div>
-    </section>
-
-    <section class="latest-band" id="latest" aria-labelledby="latest-title">
-      <div class="shell section">
-        <div class="section-header latest-header">
-          <div><p class="section-kicker">02 / THE NEWSROOM</p><h2 id="latest-title">全球新聞<span class="accent">.</span></h2></div>
-          <p>選擇你的觀察角度，<br>直接閱讀原始新聞來源。</p>
-        </div>
-        <div class="news-layout">
-          <div class="news-main">
-            <div class="controls">
-              <div class="topic-tabs" role="group" aria-label="新聞主題">
-                <button type="button" class="topic-tab active" data-topic="all" aria-pressed="true">全部</button>
-                <button type="button" class="topic-tab" data-topic="ai" aria-pressed="false">人工智能</button>
-                <button type="button" class="topic-tab" data-topic="tech" aria-pressed="false">科技</button>
-                <button type="button" class="topic-tab" data-topic="finance" aria-pressed="false">金融</button>
-                <button type="button" class="topic-tab" data-topic="unrest" aria-pressed="false">社會動盪</button>
-              </div>
-              <form class="search-row" id="search-form">
-                <label class="search-field" for="search-input"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg><input id="search-input" name="q" type="search" placeholder="搜尋關鍵字或事件" maxlength="80" autocomplete="off"></label>
-                <label class="region-field" for="region-select"><span>來源地區</span><select id="region-select" name="region"><option value="global">全球</option><option value="asia">亞洲</option><option value="europe">歐洲</option><option value="americas">美洲</option><option value="africa">非洲</option></select></label>
-                <button class="search-button" type="submit" aria-label="搜尋新聞">搜尋 <span aria-hidden="true">↗</span></button>
-              </form>
-            </div>
-            <div class="feed-heading"><div><span class="feed-line"></span><span id="feed-label">所有報導</span></div><span class="feed-count" id="feed-count">—</span></div>
-            <div class="feed-status" id="feed-status" role="status" aria-live="polite"></div>
-            <div class="article-list" id="article-list"></div>
-            <button class="load-more" id="load-more" type="button" hidden>顯示更多報導 <span aria-hidden="true">↓</span></button>
-          </div>
-          <aside class="news-aside">
-            <div class="aside-card aside-note"><span class="aside-index">EDITOR'S NOTE / 001</span><div class="aside-spark">✳</div><h3>保持好奇，<br>也保持判斷。</h3><p>每一條新聞都是理解世界的起點。閱讀原始報導，留意來源、日期與不同觀點。</p><span class="aside-rule"></span><span class="aside-sign">WORLD SIGNAL</span></div>
-            <div class="aside-card aside-topics"><span class="aside-index">EXPLORE MORE</span><h3>從關鍵字開始</h3><div class="keyword-list"><button type="button" data-keyword="AI regulation">AI 監管 <span>↗</span></button><button type="button" data-keyword="semiconductor">半導體 <span>↗</span></button><button type="button" data-keyword="inflation">通貨膨脹 <span>↗</span></button><button type="button" data-keyword="protest">抗議事件 <span>↗</span></button></div></div>
-          </aside>
-        </div>
-      </div>
-    </section>
-
-    <section class="method shell section" id="method" aria-labelledby="method-title">
-      <div><p class="section-kicker">03 / BEHIND THE SIGNAL</p><h2 id="method-title">新聞從哪裏來<span class="accent">.</span></h2></div>
-      <div class="method-copy"><p>World Signal 使用 <a href="https://www.gdeltproject.org/" target="_blank" rel="noopener noreferrer">GDELT</a> 的全球新聞索引找出相關報導；來源暫時不可用時，改用 Google News RSS。標題、語言與來源由原始資料提供；點開報導會前往新聞網站。「來源地區」按媒體所在國家篩選，並非事件發生地。</p><p>這裏呈現的是最近七日的報導，不代表所有新聞，也不構成投資建議。GitHub Pages 公開版本每三小時嘗試更新新聞；如更新失敗，頁面會清楚提示。</p></div>
-    </section>
-  </main>
-  <footer class="site-footer"><div class="shell footer-inner"><div class="footer-brand">WORLD<span>SIGNAL</span><small>看見變局，讀懂世界。</small></div><span>GLOBAL NEWS, CLEARER PERSPECTIVE.</span><a href="#top">返回頂部 ↑</a></div></footer>
-</body>
-</html>
+<header class="header"><a class="brand" href="./"><span class="brand-icon">▥</span> WORLD<span>SIGNAL</span><b>NEWS TERMINAL</b></a><div class="header-right"><span id="clock"></span><span class="edition">香港時間 · 全球版</span></div></header>
+<nav class="nav" aria-label="新聞主題"><div class="topic-tabs"><button class="topic-tab active" data-topic="all" aria-pressed="true">總覽 <small>OVERVIEW</small></button><button class="topic-tab" data-topic="ai" aria-pressed="false">人工智能</button><button class="topic-tab" data-topic="tech" aria-pressed="false">科技</button><button class="topic-tab" data-topic="finance" aria-pressed="false">金融</button><button class="topic-tab" data-topic="unrest" aria-pressed="false">社會動盪</button></div><a href="#all-news">新聞列表 ↘</a></nav>
+<div class="ticker"><strong>最新消息</strong><div id="ticker-items">正在載入全球新聞…</div><span class="ticker-note">定期更新</span></div>
+<main>
+<div class="page-heading"><div><p class="eyebrow">GLOBAL INTELLIGENCE / NEWS DESK</p><h1>全球新聞總覽<span class="heading-dot"></span></h1></div><div class="update"><span id="connection">連線中</span><span id="updated-at">—</span><button id="refresh" aria-label="重新載入新聞">↻ 更新</button></div></div>
+<section class="sector-strip" id="sector-strip" aria-label="各主題新聞數量"></section>
+<form id="search-form" class="toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="搜尋標題、媒體、關鍵字…" maxlength="80" aria-label="搜尋新聞"></label><label class="region-label">來源地區 <select id="region-select"><option value="global">全球</option><option value="asia">亞洲</option><option value="europe">歐洲</option><option value="americas">美洲</option><option value="africa">非洲</option></select></label><button class="search-button" type="submit">搜尋 ↗</button><button id="reset" type="button">清除篩選</button></form>
+<div id="feed-status" class="status" role="status" aria-live="polite"></div>
+<div class="workspace">
+<div class="news-main">
+<section aria-labelledby="focus-heading"><div class="section-heading"><h2 id="focus-heading"><i></i>各線焦點</h2><span>各主題最新一則 · 原文報導</span></div><div id="focus-grid" class="focus-grid"></div></section>
+<section aria-labelledby="channels-heading"><div class="section-heading"><h2 id="channels-heading"><i></i>四大新聞板塊</h2><span>同一頁追蹤，快速切換視角</span></div><div id="channel-grid" class="channel-grid"></div></section>
+<section id="all-news" aria-labelledby="feed-label"><div class="section-heading"><h2 id="feed-label"><i></i>全部報導</h2><span id="feed-count">—</span></div><div class="table-heading"><span>時間 / 主題</span><span>新聞標題</span><span>來源</span></div><div id="article-list" class="article-list"></div><button id="load-more" class="load-more" hidden>載入更多報導 ↓</button></section>
+</div>
+<aside>
+<section class="panel"><div class="panel-heading"><h2>最新快訊</h2><span class="tag">NEWS WIRE</span></div><div id="news-wire" class="news-wire"></div></section>
+<section class="panel"><div class="panel-heading"><h2>報導分布</h2><span class="tag">COVERAGE</span></div><div id="distribution"></div><p class="panel-note">按目前新聞資料計算，並非市場漲跌或事件風險評分。</p></section>
+<section class="panel keywords"><div class="panel-heading"><h2>關鍵字追蹤</h2><span>⌕</span></div><button data-keyword="AI">AI 模型 <span>↗</span></button><button data-keyword="semiconductor">半導體 <span>↗</span></button><button data-keyword="inflation">通貨膨脹 <span>↗</span></button><button data-keyword="protest">抗議事件 <span>↗</span></button></section>
+</aside>
+</div>
+<footer><div><strong>WORLD SIGNAL</strong><span>全球新聞觀察終端</span></div><details><summary>來源與更新方式</summary><p>資料來自 GDELT，備用來源為 Google News RSS。公開版本每三小時嘗試更新，標題保留原文；焦點依各主題最新時間選取，並非編輯的重要性排名。GDELT 時間為收錄時間，RSS 時間為發布時間。來源地區按媒體所在國家分類；缺少地區資料的報導只列於全球。新聞涵蓋範圍受來源限制，不代表所有新聞。</p></details><a href="#">回到頂部 ↑</a></footer>
+</main>
+</body></html>

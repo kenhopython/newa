@@ -1,251 +1,88 @@
-const topicNames = {
-  all: '所有報導',
-  ai: '人工智能',
-  tech: '科技前沿',
-  finance: '全球金融',
-  unrest: '社會動盪',
-};
-const topicMarks = { all: '◎', ai: '✳', tech: '⌘', finance: '↗', unrest: '◉' };
-
-const elements = {
-  date: document.querySelector('#today-date'),
-  tabs: [...document.querySelectorAll('.topic-tab')],
-  cards: [...document.querySelectorAll('.coverage-card')],
-  keywords: [...document.querySelectorAll('[data-keyword]')],
-  form: document.querySelector('#search-form'),
-  input: document.querySelector('#search-input'),
-  region: document.querySelector('#region-select'),
-  label: document.querySelector('#feed-label'),
-  count: document.querySelector('#feed-count'),
-  status: document.querySelector('#feed-status'),
-  list: document.querySelector('#article-list'),
-  more: document.querySelector('#load-more'),
-};
-
+const topics = { ai: { name: '人工智能', code: 'AI' }, tech: { name: '科技', code: 'TECH' }, finance: { name: '金融', code: 'FIN' }, unrest: { name: '社會動盪', code: 'SOC' } };
+const $ = (selector) => document.querySelector(selector);
 const params = new URLSearchParams(location.search);
-const state = {
-  topic: topicNames[params.get('topic')] ? params.get('topic') : 'all',
-  region: ['global', 'asia', 'europe', 'americas', 'africa'].includes(params.get('region')) ? params.get('region') : 'global',
-  search: params.get('q')?.slice(0, 80) || '',
-  articles: [],
-  visible: 10,
-  controller: null,
-};
-
-elements.date.textContent = new Intl.DateTimeFormat('zh-Hant-HK', {
-  timeZone: 'Asia/Hong_Kong', year: 'numeric', month: '2-digit', day: '2-digit',
-}).format(new Date());
-elements.input.value = state.search;
-elements.region.value = state.region;
-
-function setStatus(message, type = '') {
-  elements.status.textContent = message;
-  elements.status.className = `feed-status ${type}`;
-}
-
-function setTopic(topic) {
-  state.topic = topic;
-  elements.tabs.forEach((tab) => {
-    const active = tab.dataset.topic === topic;
-    tab.classList.toggle('active', active);
-    tab.setAttribute('aria-pressed', String(active));
+const state = { topic: topics[params.get('topic')] ? params.get('topic') : 'all', search: params.get('q')?.slice(0, 80) || '', region: ['asia','europe','americas','africa'].includes(params.get('region')) ? params.get('region') : 'global', articles: [], visible: 40, payload: null, controller: null };
+function node(tag, className, text) { const element = document.createElement(tag); if (className) element.className = className; if (text !== undefined) element.textContent = text; return element; }
+function tone(element, topic) { element.style.setProperty('--tone', `var(--${topics[topic] ? topic : 'ai'})`); return element; }
+function link(article, className) { const element = tone(node('a', className), article.topic); element.href = article.url; element.target = '_blank'; element.rel = 'noopener noreferrer'; element.setAttribute('aria-label', `${article.title}（在新分頁閱讀原文）`); return element; }
+function date(value, short = false) { const d = new Date(value); if (!value || Number.isNaN(d.getTime())) return '時間不詳'; return new Intl.DateTimeFormat('zh-Hant-HK', { timeZone: 'Asia/Hong_Kong', ...(short ? {} : { month: '2-digit', day: '2-digit' }), hour: '2-digit', minute: '2-digit', hour12: false }).format(d); }
+function empty(container, message) { container.replaceChildren(node('div', 'empty', message)); }
+function normalize(articles) { return articles.filter(a => { try { return topics[a.topic] && a.title && ['https:','http:'].includes(new URL(a.url).protocol); } catch { return false; } }).sort((a,b) => (Date.parse(b.seenAt) || 0) - (Date.parse(a.seenAt) || 0)); }
+function unique(articles) { const seen = new Set(); return articles.filter(a => { if (seen.has(a.url)) return false; seen.add(a.url); return true; }); }
+function filtered(deduplicate = true) { const term = state.search.toLocaleLowerCase(); const result = state.articles.filter(a => (state.topic === 'all' || a.topic === state.topic) && (state.region === 'global' || a.region === state.region) && (!term || [a.title,a.domain,a.country,a.language].some(v => String(v || '').toLocaleLowerCase().includes(term)))); return deduplicate ? unique(result) : result; }
+function sync() { const url = new URL(location.href); url.search = ''; if (state.topic !== 'all') url.searchParams.set('topic', state.topic); if (state.search) url.searchParams.set('q', state.search); if (state.region !== 'global') url.searchParams.set('region', state.region); history.replaceState(null, '', url); document.querySelectorAll('[data-topic]').forEach(button => { const active = button.dataset.topic === state.topic; button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active)); }); }
+function selectTopic(topic) { state.topic = topic; state.visible = 40; render(); }
+function renderSectors() {
+  $('#sector-strip').replaceChildren(); $('#distribution').replaceChildren();
+  const total = state.articles.length;
+  Object.entries(topics).forEach(([topic, info]) => {
+    const articles = unique(state.articles.filter(a => a.topic === topic));
+    const button = tone(node('button','sector'),topic); button.type = 'button'; button.dataset.topic = topic;
+    button.append(node('span','sector-label',info.name), node('span','sector-code',info.code));
+    const count = node('span','sector-count',state.payload ? String(articles.length).padStart(2,'0') : '—'); count.append(node('small','', '篇報導')); button.append(count);
+    const meter = node('span','sector-meter'); meter.title = '最近七日報導數量分布';
+    const buckets = Array.from({length:7},(_,i) => articles.filter(a => { const age = (Date.now()-Date.parse(a.seenAt))/86400000; return age >= 6-i && age < 7-i; }).length);
+    buckets.forEach(amount => { const bar = node('i'); bar.style.height = `${2 + amount / Math.max(1,...buckets) * 23}px`; meter.append(bar); }); button.append(meter); button.addEventListener('click',()=>selectTopic(topic)); $('#sector-strip').append(button);
+    const row = tone(node('div','distribution-row'),topic); const label = node('div','distribution-label'); label.append(node('span','',info.name),node('b','',`${articles.length} 篇`)); const bar = node('div','bar'); const fill = node('span'); fill.style.width = `${total ? articles.length/total*100 : 0}%`; bar.append(fill); row.append(label,bar); $('#distribution').append(row);
   });
-  elements.label.textContent = topicNames[topic];
-  loadNews();
 }
-
-function syncUrl() {
-  const url = new URL(location.href);
-  url.search = '';
-  if (state.topic !== 'all') url.searchParams.set('topic', state.topic);
-  if (state.region !== 'global') url.searchParams.set('region', state.region);
-  if (state.search) url.searchParams.set('q', state.search);
-  history.replaceState(null, '', url);
-}
-
-function formatSeenDate(value) {
-  if (!value) return '日期不詳';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '日期不詳';
-  return new Intl.DateTimeFormat('zh-Hant-HK', {
-    timeZone: 'Asia/Hong_Kong', month: 'numeric', day: 'numeric',
-    hour: '2-digit', minute: '2-digit', hour12: false,
-  }).format(date);
-}
-
-function renderEmpty(title, description) {
-  const empty = document.createElement('div');
-  empty.className = 'empty-feed';
-  const symbol = document.createElement('span');
-  symbol.textContent = '◎';
-  const heading = document.createElement('h3');
-  heading.textContent = title;
-  const copy = document.createElement('p');
-  copy.textContent = description;
-  empty.append(symbol, heading, copy);
-  elements.list.replaceChildren(empty);
-}
-
-function renderArticles() {
-  elements.list.replaceChildren();
-  if (!state.articles.length) {
-    renderEmpty('暫時沒有符合條件的報導', '試試其他主題、地區或搜尋字詞。');
-    elements.more.hidden = true;
-    return;
-  }
-  const fragment = document.createDocumentFragment();
-  state.articles.slice(0, state.visible).forEach((article) => {
-    const link = document.createElement('a');
-    link.className = 'article-card';
-    link.href = article.url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.setAttribute('aria-label', `${article.title}（於新分頁開啟原始報導）`);
-
-    const graphic = document.createElement('span');
-    graphic.className = `article-graphic ${article.topic}`;
-    graphic.textContent = topicMarks[article.topic] || '◎';
-
-    const body = document.createElement('div');
-    const meta = document.createElement('div');
-    meta.className = 'article-meta';
-    [topicNames[article.topic] || '全球', article.domain, `收錄 ${formatSeenDate(article.seenAt)}`, article.language, article.country]
-      .filter(Boolean).forEach((value) => {
-        const piece = document.createElement('span');
-        piece.textContent = value;
-        meta.append(piece);
-      });
-    const title = document.createElement('h3');
-    title.className = 'article-title';
-    title.textContent = article.title;
-    body.append(meta, title);
-
-    const arrow = document.createElement('span');
-    arrow.className = 'article-link-icon';
-    arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '↗';
-    link.append(graphic, body, arrow);
-    fragment.append(link);
+function renderFocus(articles) {
+  const container = $('#focus-grid'); container.replaceChildren();
+  Object.keys(topics).filter(t => state.topic === 'all' || t === state.topic).forEach(topic => {
+    const article = articles.find(a => a.topic === topic); if (!article) return;
+    const card = link(article,'focus-card'); const top = node('div','focus-top'); top.append(node('span','',`${topics[topic].code} / ${topics[topic].name}`),node('span','','↗'));
+    const bottom = node('div','focus-bottom'); bottom.append(node('span','',article.domain),node('span','',date(article.seenAt))); card.append(top,node('h3','',article.title),bottom); container.append(card);
   });
-  elements.list.append(fragment);
-  elements.more.hidden = state.visible >= state.articles.length;
+  if (!container.children.length) empty(container,state.payload ? '沒有符合條件的焦點新聞。試試清除篩選。' : '尚未取得新聞資料。');
 }
-
-async function fetchLiveNews(signal) {
-  const query = new URLSearchParams({ topic: state.topic, region: state.region });
-  if (state.search) query.set('q', state.search);
-  const url = new URL(`api/news?${query}`, document.baseURI);
-  const response = await fetch(url, { signal });
-  if (!response.ok) throw new Error('即時新聞 API 暫時無法連線');
-  return { ...await response.json(), snapshot: false };
-}
-
-async function fetchNewsSnapshot(signal) {
-  const response = await fetch(new URL('news.json', document.baseURI), { signal, cache: 'no-cache' });
-  if (!response.ok) throw new Error('新聞快照尚未取得');
-  const payload = await response.json();
-  const term = state.search.toLocaleLowerCase();
-  const allArticles = Array.isArray(payload.articles) ? payload.articles : [];
-  const regionUnavailable = allArticles.length > 0 && allArticles.every((article) => article.region === 'global');
-  let articles = allArticles.filter((article) => {
-    if (state.topic !== 'all' && article.topic !== state.topic) return false;
-    if (!regionUnavailable && state.region !== 'global' && article.region !== state.region) return false;
-    if (!term) return true;
-    return [article.title, article.domain, article.country, article.language]
-      .some((value) => String(value || '').toLocaleLowerCase().includes(term));
+function renderChannels() {
+  const container = $('#channel-grid'); container.replaceChildren();
+  Object.entries(topics).filter(([topic]) => state.topic === 'all' || state.topic === topic).forEach(([topic,info]) => {
+    const term = state.search.toLocaleLowerCase();
+    const articles = unique(state.articles.filter(a => a.topic === topic && (state.region === 'global' || a.region === state.region) && (!term || [a.title,a.domain,a.country,a.language].some(v=>String(v||'').toLocaleLowerCase().includes(term)))));
+    const panel = tone(node('section','channel'),topic); const header = node('div','channel-heading'); header.append(node('h3','',`${info.name} / ${info.code}`)); const more = node('button','',`全部 ${articles.length} 篇 ↗`); more.addEventListener('click',()=>{selectTopic(topic);$('#all-news').scrollIntoView({behavior:'smooth'});}); header.append(more); panel.append(header);
+    articles.slice(0,5).forEach((article,i) => { const item = link(article,'channel-story'); const content = node('div'); content.append(node('h4','',article.title),node('small','',`${article.domain} · ${date(article.seenAt)}`)); item.append(node('span','story-number',String(i+1).padStart(2,'0')),content); panel.append(item); });
+    if (!articles.length) panel.append(node('p','empty',state.payload ? '沒有符合條件的報導' : '等待新聞資料')); container.append(panel);
   });
-  if (state.topic === 'all') {
-    const seen = new Set();
-    articles = articles.filter((article) => {
-      if (seen.has(article.url)) return false;
-      seen.add(article.url);
-      return true;
-    });
-  }
-  return { articles, snapshot: true, generatedAt: payload.generatedAt, staleTopics: payload.staleTopics, rssTopics: payload.rssTopics, regionUnavailable };
 }
-
-async function fetchArticleData(signal) {
-  if (location.hostname.endsWith('.github.io')) return fetchNewsSnapshot(signal);
-  try {
-    return await fetchLiveNews(signal);
-  } catch (error) {
-    if (error.name === 'AbortError') throw error;
-    return fetchNewsSnapshot(signal);
-  }
+function renderFeed(articles) {
+  $('#feed-label').replaceChildren(node('i'),document.createTextNode(state.topic === 'all' ? '全部報導' : `${topics[state.topic].name}報導`)); $('#feed-count').textContent = `${articles.length} 篇 / 按時間排序`;
+  const container = $('#article-list'); container.replaceChildren();
+  articles.slice(0,state.visible).forEach(article => { const row = link(article,'article-row'); const time = node('div','row-time',date(article.seenAt)); time.append(node('span','topic-badge',topics[article.topic].name)); const source = node('div','row-source',article.domain); source.append(node('span','',article.country || article.language || '原文來源')); row.append(time,node('h3','',article.title),source); container.append(row); });
+  if (!articles.length) empty(container,state.payload ? '沒有符合條件的報導。清除篩選或更換關鍵字再試。' : '新聞來源暫時未能載入，請稍後更新。');
+  $('#load-more').hidden = state.visible >= articles.length;
 }
-
-async function loadNews() {
-  state.controller?.abort();
-  state.controller = new AbortController();
-  const controller = state.controller;
-  state.visible = 10;
-  state.articles = [];
-  elements.count.textContent = '—';
-  elements.more.hidden = true;
-  renderEmpty('正在尋找全球訊號', '新聞來源載入中…');
-  setStatus('正在更新最近七日的全球報導…', 'loading');
-  syncUrl();
-
-  try {
-    const payload = await fetchArticleData(controller.signal);
-    state.articles = Array.isArray(payload.articles) ? payload.articles : [];
-    elements.region.disabled = Boolean(payload.regionUnavailable);
-    if (payload.regionUnavailable && state.region !== 'global') {
-      state.region = 'global';
-      elements.region.value = 'global';
-      syncUrl();
-    }
-    elements.count.textContent = payload.snapshot && !payload.generatedAt ? '待更新' : `${state.articles.length} 篇`;
-    if (payload.snapshot && !payload.generatedAt) {
-      setStatus('新聞快照尚未建立。定期更新流程完成後，報導會出現在這裏。');
-      renderEmpty('首次新聞更新尚未完成', '網站已就緒，新聞列表會在資料更新後顯示。');
-      return;
-    }
-    if (payload.snapshot) {
-      const delayed = payload.staleTopics?.length ? '部分主題沿用較早的報導。' : '';
-      const alternate = payload.rssTopics?.length ? '部分報導改由 Google News RSS 提供。' : '';
-      const noRegion = payload.regionUnavailable ? '這批報導沒有可靠的來源地區資料。' : '';
-      setStatus(`顯示 ${formatSeenDate(payload.generatedAt)} 更新的新聞快照；篩選與搜尋會在這批報導中進行。${delayed}${alternate}${noRegion}`);
-    } else if (payload.stale) {
-      setStatus('目前顯示稍早取得的報導，新聞來源暫時無法更新。');
-    } else {
-      setStatus('');
-    }
-    renderArticles();
-  } catch (error) {
-    if (error.name === 'AbortError') return;
-    elements.count.textContent = '未連線';
-    setStatus('新聞來源暫時無法連線。請稍後重試。');
-    renderEmpty('暫時無法取得即時報導', '你仍可探索四個觀察領域；連線恢復後，新聞列表會顯示原始報導。');
-  }
+function renderWire(articles) {
+  const wire = $('#news-wire'); wire.replaceChildren();
+  articles.slice(0,8).forEach(article => { const item = link(article,'wire-item'); item.append(node('time','',date(article.seenAt)),node('h3','',article.title),node('small','',`${topics[article.topic].name} · ${article.domain}`)); wire.append(item); });
+  if (!articles.length) empty(wire,'暫無快訊');
+  const ticker = $('#ticker-items'); ticker.replaceChildren(); unique(state.articles).slice(0,5).forEach(article=>{const item=link(article,'');item.append(node('b','',topics[article.topic].code),document.createTextNode(article.title));ticker.append(item);}); if (!ticker.children.length) ticker.textContent='新聞來源載入後，最新標題將顯示於此。';
 }
-
-elements.tabs.forEach((tab) => tab.addEventListener('click', () => setTopic(tab.dataset.topic)));
-elements.cards.forEach((card) => card.addEventListener('click', () => {
-  setTopic(card.dataset.topic);
-  document.querySelector('#latest').scrollIntoView({ behavior: 'smooth' });
-}));
-elements.keywords.forEach((keyword) => keyword.addEventListener('click', () => {
-  elements.input.value = keyword.dataset.keyword;
-  state.search = elements.input.value;
-  loadNews();
-  document.querySelector('#latest').scrollIntoView({ behavior: 'smooth' });
-}));
-elements.form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  state.search = elements.input.value.trim().slice(0, 80);
-  state.region = elements.region.value;
-  loadNews();
-});
-elements.region.addEventListener('change', () => {
-  state.region = elements.region.value;
-  state.search = elements.input.value.trim().slice(0, 80);
-  loadNews();
-});
-elements.more.addEventListener('click', () => {
-  state.visible += 10;
-  renderArticles();
-});
-
-setTopic(state.topic);
+function render() { const articles = filtered(); renderSectors(); renderFocus(filtered(false)); renderChannels(); renderFeed(articles); renderWire(articles); sync(); }
+async function fetchData(signal) {
+  let snapshot;
+  try { const response = await fetch(new URL('news.json',document.baseURI),{signal,cache:'no-cache'}); if (response.ok) {snapshot = await response.json(); if (snapshot.articles?.length) return snapshot;} } catch(error) {if(error.name==='AbortError')throw error;}
+  if (location.hostname.endsWith('.github.io')) throw new Error('首次新聞更新尚未完成');
+  const results = await Promise.allSettled(Object.keys(topics).map(async topic => { const response = await fetch(new URL(`api/news?topic=${topic}`,document.baseURI),{signal}); if(!response.ok)throw new Error('來源連線失敗'); return response.json(); }));
+  if(signal.aborted)throw new DOMException('Aborted','AbortError');
+  const successful=results.filter(r=>r.status==='fulfilled'); const articles=successful.flatMap(r=>r.value.articles||[]); if(!articles.length)throw new Error('新聞來源暫時無法連線');
+  return {articles,generatedAt:new Date().toISOString(),partial:successful.length<4};
+}
+async function load() {
+  state.controller?.abort(); const controller=new AbortController(); state.controller=controller; $('#refresh').disabled=true; $('#feed-status').textContent='正在更新四個新聞板塊…'; $('#connection').textContent='更新中';
+  try { const payload=await fetchData(controller.signal); state.payload=payload; state.articles=normalize(payload.articles); state.visible=40;
+    const hasRegions=state.articles.some(a=>a.region && a.region!=='global'); $('#region-select').disabled=!hasRegions; if(!hasRegions){state.region='global';$('#region-select').value='global';}
+    $('#connection').textContent='資料已載入';$('#connection').className='ready';$('#updated-at').textContent=`更新 ${date(payload.generatedAt)}`;
+    const notes=['依各主題最新時間排列 · 標題保留原文']; if(payload.rssTopics?.length)notes.push('含 Google News RSS 報導'); if(payload.staleTopics?.length||payload.partial)notes.push('部分主題更新延遲'); if(!hasRegions)notes.push('目前資料未提供可靠的來源地區'); $('#feed-status').textContent=notes.join(' / ');render();
+  } catch(error) {if(error.name==='AbortError')return;$('#connection').textContent='更新失敗';$('#connection').className='';$('#feed-status').textContent=state.payload?'更新失敗，保留目前顯示的報導。':`${error.message}。請稍後重試。`;if(!state.payload)render();}
+  finally{if(state.controller===controller)$('#refresh').disabled=false;}
+}
+$('#search-input').value=state.search;$('#region-select').value=state.region;
+document.querySelectorAll('.topic-tab').forEach(button=>button.addEventListener('click',()=>selectTopic(button.dataset.topic)));
+$('#search-form').addEventListener('submit',event=>{event.preventDefault();state.search=$('#search-input').value.trim();state.region=$('#region-select').value;state.visible=40;render();});
+$('#region-select').addEventListener('change',()=>{state.region=$('#region-select').value;state.visible=40;render();});
+$('#reset').addEventListener('click',()=>{state.topic='all';state.region='global';state.search='';state.visible=40;$('#search-input').value='';$('#region-select').value='global';render();});
+document.querySelectorAll('[data-keyword]').forEach(button=>button.addEventListener('click',()=>{state.topic='all';state.search=button.dataset.keyword;$('#search-input').value=state.search;state.visible=40;render();$('#all-news').scrollIntoView({behavior:'smooth'});}));
+$('#load-more').addEventListener('click',()=>{state.visible+=40;renderFeed(filtered());});$('#refresh').addEventListener('click',load);
+function clock(){ $('#clock').textContent=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Hong_Kong',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date()); }clock();setInterval(clock,1000);
+renderSectors();sync();$('#focus-grid').replaceChildren(...Object.keys(topics).map(topic=>{const card=node('div','pending',topics[topic].name);card.append(node('span'),node('span'));return card;}));load();
