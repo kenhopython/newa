@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildGdeltUrl, normalizeArticles, getNews, createAppServer } from './server.js';
-import { buildSnapshot, regionForCountry } from './scripts/build-news.js';
+import { buildSnapshot, parseRss, regionForCountry } from './scripts/build-news.js';
 
 test('GDELT query includes the selected topic, region and safe search phrase', () => {
   const url = buildGdeltUrl({ topic: 'finance', region: 'asia', search: '  central "bank"  ' });
@@ -71,4 +71,13 @@ test('Pages snapshot combines all four topics with source regions', async () => 
   assert.ok(snapshot.articles.every((item) => item.region === 'asia'));
   assert.deepEqual(snapshot.staleTopics, []);
   assert.equal(regionForCountry('United States'), 'americas');
+});
+
+test('Google News RSS fallback parses original headlines and links', () => {
+  const xml = '<rss><channel><item><title>AI &amp; society - Example News</title><link>https://news.google.com/articles/123?x=1&amp;y=2</link><pubDate>Wed, 21 Oct 2026 08:00:00 GMT</pubDate><source url="https://example.com">Example News</source></item></channel></rss>';
+  const articles = parseRss(xml, 'ai');
+  assert.equal(articles.length, 1);
+  assert.equal(articles[0].title, 'AI & society');
+  assert.equal(articles[0].url, 'https://news.google.com/articles/123?x=1&y=2');
+  assert.equal(articles[0].source, 'google-rss');
 });

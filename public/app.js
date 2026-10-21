@@ -145,9 +145,11 @@ async function fetchNewsSnapshot(signal) {
   if (!response.ok) throw new Error('新聞快照尚未取得');
   const payload = await response.json();
   const term = state.search.toLocaleLowerCase();
-  let articles = (Array.isArray(payload.articles) ? payload.articles : []).filter((article) => {
+  const allArticles = Array.isArray(payload.articles) ? payload.articles : [];
+  const regionUnavailable = allArticles.length > 0 && allArticles.every((article) => article.region === 'global');
+  let articles = allArticles.filter((article) => {
     if (state.topic !== 'all' && article.topic !== state.topic) return false;
-    if (state.region !== 'global' && article.region !== state.region) return false;
+    if (!regionUnavailable && state.region !== 'global' && article.region !== state.region) return false;
     if (!term) return true;
     return [article.title, article.domain, article.country, article.language]
       .some((value) => String(value || '').toLocaleLowerCase().includes(term));
@@ -160,7 +162,7 @@ async function fetchNewsSnapshot(signal) {
       return true;
     });
   }
-  return { articles, snapshot: true, generatedAt: payload.generatedAt, staleTopics: payload.staleTopics };
+  return { articles, snapshot: true, generatedAt: payload.generatedAt, staleTopics: payload.staleTopics, rssTopics: payload.rssTopics, regionUnavailable };
 }
 
 async function fetchArticleData(signal) {
@@ -188,6 +190,12 @@ async function loadNews() {
   try {
     const payload = await fetchArticleData(controller.signal);
     state.articles = Array.isArray(payload.articles) ? payload.articles : [];
+    elements.region.disabled = Boolean(payload.regionUnavailable);
+    if (payload.regionUnavailable && state.region !== 'global') {
+      state.region = 'global';
+      elements.region.value = 'global';
+      syncUrl();
+    }
     elements.count.textContent = payload.snapshot && !payload.generatedAt ? '待更新' : `${state.articles.length} 篇`;
     if (payload.snapshot && !payload.generatedAt) {
       setStatus('新聞快照尚未建立。定期更新流程完成後，報導會出現在這裏。');
@@ -196,7 +204,9 @@ async function loadNews() {
     }
     if (payload.snapshot) {
       const delayed = payload.staleTopics?.length ? '部分主題沿用較早的報導。' : '';
-      setStatus(`顯示 ${formatSeenDate(payload.generatedAt)} 更新的新聞快照；篩選與搜尋會在這批報導中進行。${delayed}`);
+      const alternate = payload.rssTopics?.length ? '部分報導改由 Google News RSS 提供。' : '';
+      const noRegion = payload.regionUnavailable ? '這批報導沒有可靠的來源地區資料。' : '';
+      setStatus(`顯示 ${formatSeenDate(payload.generatedAt)} 更新的新聞快照；篩選與搜尋會在這批報導中進行。${delayed}${alternate}${noRegion}`);
     } else if (payload.stale) {
       setStatus('目前顯示稍早取得的報導，新聞來源暫時無法更新。');
     } else {

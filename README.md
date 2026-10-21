@@ -17,9 +17,9 @@ npm start
 
 ## GitHub Pages 發布
 
-`.github/workflows/pages.yml` 在推送到 `main`、手動執行，或每三小時的排程觸發時執行：驗證程式、由 GDELT 更新 `public/news.json`，再將 `public/` 發布到 GitHub Pages。這不需要在 GitHub Pages 上執行 Node 伺服器。
+`.github/workflows/pages.yml` 在推送到 `main`、手動執行，或每三小時的排程觸發時執行：驗證程式、更新 `public/news.json`，再將 `public/` 發布到 GitHub Pages。新聞優先由 GDELT 取得；若無法連線，會嘗試 Google News RSS。這不需要在 GitHub Pages 上執行 Node 伺服器。
 
-儲存庫的 **Settings → Pages → Build and deployment → Source** 須設定為 **GitHub Actions**。首次執行需要 GDELT 可從 GitHub Actions 連線；若任何主題首次抓取失敗，部署會停止，避免發布空白新聞。之後某一主題短暫失敗時，會保留該主題上一次成功的報導並在頁面提示。網站上的搜尋與來源地區篩選會在已下載的快照內進行。
+儲存庫的 **Settings → Pages → Build and deployment → Source** 須設定為 **GitHub Actions**。若任何主題首次從兩個來源抓取均失敗，部署會停止，避免發布空白新聞。之後某一主題短暫失敗時，會保留該主題上一次成功的報導並在頁面提示。網站上的搜尋與來源地區篩選會在已下載的快照內進行；若快照只有 RSS 報導，由於缺少可靠的媒體所在國家資料，地區篩選會暫時停用。
 
 ## 資料說明
 
