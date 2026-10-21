@@ -36,3 +36,6 @@ npm start
 發布流程會將每則標題轉為繁體中文及英文，使用 Google Translate 公開端點（非保證可用的正式 API），並透過 GitHub Actions cache 重用上一版譯文。翻譯失敗會中止發布，保留線上上一版，避免發布缺少對照的新聞。譯文僅供參考，原始標題與原文連結仍保留。搜尋支援兩種語言。
 
 圖片優先採用 GDELT socialimage 或 RSS media/enclosure；缺圖或圖片失效時顯示標註「主題示意圖」的圖案，並非現場照片。首次本機開發請先執行 `node scripts/build-news.js` 取得完整雙語快照；即時 API 的未翻譯資料會顯示翻譯未提供提示。
+
+### World Monitor 地圖
+首頁嵌入 [World Monitor 的官方免費 Live Map](https://www.worldmonitor.app/docs/embed-live-map)，顯示衝突、地震、天氣三個圖層。免費嵌入不需金鑰，每小時更新；額外提供 World Monitor 科技與金融看板連結。地圖由 World Monitor 自行託管，與本站的 GDELT / RSS 新聞資料沒有逐篇地理關聯。若第三方地圖不可用，讀者可透過地圖下方連結直接開啟完整看板。本站沒有複製 World Monitor 的 AGPL 原始碼或透過其付費 API 抓取內容。
