@@ -57,6 +57,7 @@ export function normalizeArticles(raw, topic) {
       : null;
     return [{
       title: item.title.trim().slice(0, 300),
+      image: typeof item.socialimage === 'string' && item.socialimage.startsWith('https://') ? item.socialimage : '',
       url: link.href,
       domain: typeof item.domain === 'string' ? item.domain.slice(0, 100) : link.hostname,
       language: typeof item.language === 'string' ? item.language.slice(0, 50) : '',

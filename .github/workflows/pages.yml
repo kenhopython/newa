@@ -27,6 +27,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/cache@v4
+        with:
+          path: public/news.json
+          key: news-bilingual-${{ github.run_id }}
+          restore-keys: news-bilingual-
       - run: npm test
       - run: node scripts/build-news.js
       - uses: actions/configure-pages@v5

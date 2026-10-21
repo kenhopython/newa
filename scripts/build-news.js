@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { buildGdeltUrl, normalizeArticles } from '../server.js';
 
+import { enrichArticles, safeImage } from './enrich-news.js';
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'public', 'news.json');
 const topics = ['ai', 'tech', 'finance', 'unrest'];
@@ -51,6 +53,7 @@ export function parseRss(xml, topic) {
     const published = new Date(tag(item, 'pubDate'));
     return [{
       title: title.slice(0, 300), url: url.href, domain: source || url.hostname,
+      image: safeImage(decodeXml(item.match(/<(?:media:content|media:thumbnail|enclosure)\b[^>]*url=["']([^"']+)/i)?.[1] || '')),
       language: 'English', country: '', region: 'global', topic, source: 'google-rss',
       seenAt: Number.isNaN(published.getTime()) ? null : published.toISOString(),
     }];
@@ -129,6 +132,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     let previous = { articles: [] };
     try { previous = JSON.parse(await readFile(output, 'utf8')); } catch {}
     const snapshot = await buildSnapshot({ previous });
+    snapshot.articles = await enrichArticles(snapshot.articles, { previous: previous.articles });
     const temporary = `${output}.tmp`;
     await writeFile(temporary, `${JSON.stringify(snapshot, null, 2)}\n`);
     await rename(temporary, output);

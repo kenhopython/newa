@@ -81,3 +81,17 @@ test('Google News RSS fallback parses original headlines and links', () => {
   assert.equal(articles[0].url, 'https://news.google.com/articles/123?x=1&y=2');
   assert.equal(articles[0].source, 'google-rss');
 });
+
+test('bilingual enrichment translates, reuses cache and rejects incomplete translations', async () => {
+  const { enrichArticles, safeImage } = await import('./scripts/enrich-news.js');
+  let calls = 0;
+  const articles = [{ title: 'AI report', language: 'English', image: 'https://example.com/photo.jpg' }];
+  const fetcher = async url => { calls++; assert.equal(url.searchParams.get('tl'), 'zh-TW'); return { ok: true, json: async () => [[['人工智能報導', 'AI report']]] }; };
+  const result = await enrichArticles(articles, { fetcher, pause: async () => {} });
+  assert.equal(result[0].titleZh, '人工智能報導');
+  assert.equal(result[0].titleEn, 'AI report');
+  await enrichArticles(articles, { fetcher, previous: result });
+  assert.equal(calls, 1);
+  assert.equal(safeImage('javascript:alert(1)'), '');
+  await assert.rejects(enrichArticles(articles, { fetcher: async () => ({ ok: false, status: 429 }), pause: async () => {} }), /429/);
+});
